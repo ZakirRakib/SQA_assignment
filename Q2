@@ -1,0 +1,45 @@
+describe('Purchase Flow for standard_user', () => {
+    beforeEach(async () => {
+        await browser.url('https://www.saucedemo.com/');
+        await $('#user-name').setValue('standard_user');
+        await $('#password').setValue('secret_sauce');
+        await $('#login-button').click();
+    });
+
+    it('should complete a purchase journey and reset state', async () => {
+        // Reset App State
+        await $('.bm-burger-button').click();
+        await $('#reset_sidebar_link').click();
+
+        // Add three items to the cart
+        const itemsToAdd = [0, 1, 2];  // Add the first three items
+        for (const index of itemsToAdd) {
+            await $$('button.btn_inventory')[index].click();
+        }
+
+        // Navigate to cart
+        await $('.shopping_cart_link').click();
+
+        // Proceed to checkout
+        await $('#checkout').click();
+        await $('#first-name').setValue('John');
+        await $('#last-name').setValue('Doe');
+        await $('#postal-code').setValue('12345');
+        await $('#continue').click();
+
+        // Verify product names and total price
+        const products = await $$('div.inventory_item_name');
+        const totalPriceElement = await $('.summary_total_label');
+        const totalPrice = await totalPriceElement.getText();
+
+        // Finish purchase and verify order message
+        await $('#finish').click();
+        const successMessage = await $('.complete-header').getText();
+        expect(successMessage).toContain('THANK YOU FOR YOUR ORDER');
+
+        // Reset App State and Logout
+        await $('.bm-burger-button').click();
+        await $('#reset_sidebar_link').click();
+        await $('#logout_sidebar_link').click();
+    });
+});
